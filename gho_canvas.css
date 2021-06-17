@@ -1,0 +1,14 @@
+.reset_course_content_button { display: none; }
+
+.calendarContainer h2 {
+  font-size:1.9vw;
+  font-weight:bold;
+}
+
+.calendarContainer h3 {
+  font-size:1.8vw;
+}
+
+.calendarContainer p {
+  font-size:1.6vw;
+}
