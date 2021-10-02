@@ -1,0 +1,26 @@
+{
+    "calendar_event": {
+        "context_code": "course_129",
+        "title": "Homezoom and Core Live Time",
+        "description": "<p><a href=\"https://tinyurl.com/GHOTech/\" target=\"_blank\"><img src=\"https://st1.zoom.us/static/5.1.754/image/new/home/meetings.png\" alt=\"zoom.jpg\"/></a><br/>&nbsp;&nbsp;<a href=\"https://tinyurl.com/GHOTech/\" target=\"_blank\">Join Zoom</a></p>",
+        "child_event_data": [
+            {
+                "start_at": "2021-08-18T08:00:00",
+                "end_at": "2021-08-18T10:10:00",
+                "context_code": "course_section_129"
+            },
+            {
+                "start_at": "2021-08-18T10:10:00",
+                "end_at": "2021-08-8T12:10:00",
+                "context_code": "course_section_233"
+            }
+        ],
+        "duplicate":
+            {
+                "count": 1,
+                "interval": 1,
+                "frequency": "daily"
+            },
+        "important_dates": false
+    }
+}

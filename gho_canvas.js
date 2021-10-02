@@ -1,4 +1,13 @@
+"use strict";
 const api = window.location.origin + '/api/v1/';
+
+/* DOM Load events*/
+$(ta_todo());
+$(add_people_functions());
+$(hide_sidebars());
+$(add_profile_grades());
+$(add_profile_file_quota_status());
+/* End DOM Load events*/
 
 /* Utility functions */
 const sleep = (milliseconds) => {
@@ -8,6 +17,10 @@ const sleep = (milliseconds) => {
 function is_todo_page() {
     const course_regex = new RegExp('/courses/[0-9]*$');
     return window.location.pathname == '/' || is_course_page();
+}
+
+function is_dashboard() {
+    return window.location.pathname == '/';
 }
 
 function is_course_page() {
@@ -20,9 +33,14 @@ function is_course_user_page() {
     return course_regex.test(window.location.pathname) ?? false;
 }
 
+function is_calendar_page() {
+    const course_regex = new RegExp('/calendar.*$');
+    return course_regex.test(window.location.pathname) ?? false;
+}
+
 function get_course_from_uri(uri) {
     // /api/v1/courses/482/users
-    var course = uri.match('.*/courses/([0-9]+).*');
+    let course = uri.match('.*/courses/([0-9]+).*');
     return course ? course[1] : null;
 }
 
@@ -35,39 +53,36 @@ function is_user_profile_page() {
     return course_regex.test(window.location.pathname) ?? false;
 }
 
+function is_user_profile_settings_page() {
+    const course_regex = new RegExp('/profile/settings$');
+    return course_regex.test(window.location.pathname) ?? false;	
+}
+
 function get_user_from_profile_uri() {
 	if (is_user_profile_page()) {
 		/* Get current URL from Canvas, and split into an indexed string */
-		var originalURL = window.location.pathname.split('/');
+		let originalURL = window.location.pathname.split('/');
 
 		/* Flip the String in originalURL because Canvas has at least two paths for the user page
 		* (/accounts/subaccountnumber/users/ and /users/)
 		* and we are interested in just pulling the userID
 		*/
-		var flipURL = originalURL.reverse();
+		let flipURL = originalURL.reverse();
 
 		/*Access the User ID*/
-		var userID = flipURL[0];
+		let userID = flipURL[0];
 		return userID
 	} else {
 		return 0;
 	}
 }
 
-/* DOM Load events*/
-$(ta_todo());
-$(add_people_functions());
-$(hide_sidebars());
-$(add_profile_grades());
-$(add_profile_file_quota_status());
-/* End DOM Load events*/
-
 async function fetch_parse_canvas(query) {
     /*
      * On production, the custom data api returns a while (1); in front of the json.
      * this doesn't happen on beta. The code below will extract valid JSON in either case.
      */
-    var my_json;
+    let my_json;
     try {
         let response = await fetch(query);
         my_json = response.ok ? await response.text() : null;
@@ -84,9 +99,14 @@ async function fetch_parse_canvas(query) {
     return my_json;
 }
 
+async function get_cal_event(id) {
+	let cal_event = await fetch_parse_canvas(api + 'calendar_events/' + id);
+	return cal_event;
+}
+
 function downloadCSV(csv, filename) {
-    var csvFile;
-    var downloadLink;
+    let csvFile;
+    let downloadLink;
 
     // CSV file
     csvFile = new Blob([csv], {
@@ -113,8 +133,8 @@ function downloadCSV(csv, filename) {
 }
 
 function exportTableToCSV(dot_selector, omit, filename = 'canvas_table_export.csv', index = 0) {
-	var csv = [];
-    var rows = document.querySelectorAll("table" + dot_selector);
+	let csv = [];
+    let rows = document.querySelectorAll("table" + dot_selector);
 	if (!rows) {
 		return false;
 	} else {
@@ -133,12 +153,12 @@ function exportTableToCSV(dot_selector, omit, filename = 'canvas_table_export.cs
 		return false;
 	}
 
-    var head = rows.children[0].children;
-    for (var i = 0; i < head.length; i++) {
-        var row = [],
+    let head = rows.children[0].children;
+    for (let i = 0; i < head.length; i++) {
+        let row = [],
         cols = head[i].querySelectorAll("thead th");
 
-        for (var j = 0; j < cols.length; j++) {
+        for (let j = 0; j < cols.length; j++) {
             if (!omit.includes(j)) {
                 row.push(cols[j].innerText);
             }
@@ -146,14 +166,14 @@ function exportTableToCSV(dot_selector, omit, filename = 'canvas_table_export.cs
         csv.push(row.join(","));
     }
 
-    var data = rows.children[1].children;
+    let data = rows.children[1].children;
     const lfcrRegexp = /\n\r?/g;
     const delimRegExp = /\,/g;
-    for (var i = 0; i < data.length; i++) {
-        var row = [],
+    for (let i = 0; i < data.length; i++) {
+        let row = [],
         cols = data[i].querySelectorAll("tbody td");
 
-        for (var j = 0; j < cols.length; j++) {
+        for (let j = 0; j < cols.length; j++) {
             if (!omit.includes(j)) {
                 row.push(cols[j].innerText.replace(lfcrRegexp, ' & ').replace(delimRegExp, ' - '));
             }
@@ -174,12 +194,12 @@ function exportTableToCSV(dot_selector, omit, filename = 'canvas_table_export.cs
  */
 async function ta_todo() {
     if (is_todo_page()) {
-        var ta_enrollments;
-        var todo_selector_text = '.to-do-list';
+        let ta_enrollments;
+        let todo_selector_text = '.to-do-list';
 
-        let do_todo_json = await fetch_parse_canvas(api + 'users/self/custom_data?ns=com.greatheartsonline.canvas-app');
-        const do_no_ta_todo = do_todo_json ? do_todo_json.data.no_ta_todo ?? false : false;
-        console.log('do_no_ta_todo: ' + do_no_ta_todo);
+        //let do_todo_json = await fetch_parse_canvas(api + 'users/self/custom_data?ns=com.greatheartsonline.canvas-app');
+        const do_no_ta_todo = true; //do_todo_json ? do_todo_json.data.no_ta_todo ?? false : false;
+        //console.log('do_no_ta_todo: ' + do_no_ta_todo);
 
         if (do_no_ta_todo) {
             let enrollments_json = await fetch_parse_canvas(api + 'courses?enrollment_type=ta&enrollment_state=active');
@@ -188,15 +208,15 @@ async function ta_todo() {
                 ta_enrollments.forEach((enrollment, i, a) => a[i] = 'li.todo a[href*="/courses/' + enrollment + '/"]');
                 ta_enrollments = ta_enrollments.join(', ');
             } else {
-                console.log('no ta enrollments');
+                // console.log('no ta enrollments');
                 return;
             }
 
             /* This is awful, but the to do list is being loaded asynchronously and more elegant
              * mechanisms are not working reliably.
              */
-            var counter = 0;
-            var todo_selector = $(todo_selector_text);
+            let counter = 0;
+            let todo_selector = $(todo_selector_text);
             while (!todo_selector.length && counter < 10) {
                 await sleep(250);
                 counter++;
@@ -208,13 +228,13 @@ async function ta_todo() {
             }
 
             document.querySelectorAll(ta_enrollments).forEach((elem) => elem.parentNode.remove());
-            var todo_showing = $('li.todo:visible').length;
+            let todo_showing = $('li.todo:visible').length;
             while (todo_showing < 5 && todo_showing <= $('li.todo').length) {
                 $('li.todo:hidden:first').css('display', '');
                 todo_showing++;
             }
-            var more = $('ul.to-do-list li a.more_link')[0];
-            var hidden_todos = $('li.todo:hidden').length;
+            let more = $('ul.to-do-list li a.more_link')[0];
+            let hidden_todos = $('li.todo:hidden').length;
             if (more) {
                 if (hidden_todos > 0) {
                     more.innerText = hidden_todos + ' more...';
@@ -232,9 +252,9 @@ async function add_people_functions() {
         /* This is awful, but the to do list is being loaded asynchronously and more elegant
          * mechanisms are not working reliably.
          */
-        var counter = 0;
-        var trigger_class = 'div#people-options .al-trigger';
-        var dot_button_selector = $(trigger_class);
+        let counter = 0;
+        let trigger_class = 'div#people-options .al-trigger';
+        let dot_button_selector = $(trigger_class);
         while (!dot_button_selector.length && counter < 10) {
             await sleep(250);
             counter++;
@@ -245,7 +265,7 @@ async function add_people_functions() {
             console.log('no dotbutton selector');
         } else {
             // selector resolves but it takes a moment for it to exist sufficiently to get to addEventListener
-            var counter = 0;
+            let counter = 0;
             while (!dot_button_selector[0].addEventListener && counter < 10) {
                 await sleep(250);
                 counter++;
@@ -272,19 +292,16 @@ async function student_list() {
 
         let users = await fetch_parse_canvas(api + window.location.pathname + '?sort=username&enrollment_type[]=student&per_page=100');
         if (users.length) {
-            var usertable = '<table>';
+            let usertable = '<table>';
             users.forEach((user, i, a) => {
                 usertable += '<tr><td>' + user.name + '</td><td>' + user.email + '</td></tr>';
             })
-
-            var opened = window.open("");
-
+            let opened = window.open("");
             opened.document.write('<html><head><title>' + $('head > title').text() + '</title></head><body><em>' + $('head > title').text() + '</em>' + usertable + '</table></body></html>');
         } else {
             console.log('no users to present');
             return;
         }
-
     }
 }
 
@@ -299,19 +316,19 @@ function add_handler_for_student_list() {
     }
     ul_class = 'al-options ui-menu ui-widget ui-widget-content';
 
-    var ul = document.getElementsByClassName(ul_class)[0];
-    var li = document.createElement('li');
+    let ul = document.getElementsByClassName(ul_class)[0];
+    let li = document.createElement('li');
     li.setAttribute('role', 'presentation');
     li.setAttribute('class', 'ui-menu-item');
-    var a = document.createElement('a');
-    var link = document.createTextNode(' Display Student List');
+    let a = document.createElement('a');
+    let link = document.createTextNode(' Display Student List');
     a.appendChild(link);
     a.title = 'Display Student List';
     a.href = '#';
     a.setAttribute('class', 'ui-corner-all');
     a.setAttribute('tabindex', '-1');
     a.setAttribute('role', 'menuitem');
-    var i = document.createElement('i');
+    let i = document.createElement('i');
     i.setAttribute('class', 'icon-printer');
     a.prepend(i);
     li.appendChild(a);
@@ -332,26 +349,26 @@ const export_visible_list = () => {
     exportTableToCSV(selector, omitarray, filename);
 }
 
-var added_handler_for_export = false;
+let added_handler_for_export = false;
 function add_handler_for_export() {
     if (added_handler_for_export) {
         return;
     }
     ul_class = 'al-options ui-menu ui-widget ui-widget-content';
 
-    var ul = document.getElementsByClassName(ul_class)[0];
-    var li = document.createElement('li');
+    let ul = document.getElementsByClassName(ul_class)[0];
+    let li = document.createElement('li');
     li.setAttribute('role', 'presentation');
     li.setAttribute('class', 'ui-menu-item');
-    var a = document.createElement('a');
-    var link = document.createTextNode(' Export Visible');
+    let a = document.createElement('a');
+    let link = document.createTextNode(' Export Visible');
     a.appendChild(link);
     a.title = 'Export Visible';
     a.href = '#';
     a.setAttribute('class', 'ui-corner-all');
     a.setAttribute('tabindex', '-1');
     a.setAttribute('role', 'menuitem');
-    var i = document.createElement('i');
+    let i = document.createElement('i');
     i.setAttribute('class', 'icon-archive');
     a.prepend(i);
     li.appendChild(a);
@@ -367,21 +384,26 @@ function add_handler_for_export() {
 
 function hide_sidebars() {
 	if (is_student_or_observer()) {
-		$('#right-side-wrapper').hide();
-		$('#left-side').hide();
+		if(! is_calendar_page() && ! is_user_profile_settings_page() & ! is_dashboard()) {
+			$('#right-side-wrapper').hide();
+		}
+		
+		// Hide left sidebar and add grades to breadcrumbs
+		/* $('#left-side').hide();
 		$('#courseMenuToggle').hide()
 		$('div.ic-Layout-columns').css('marginLeft', '0px');
 		let gradesDiv = $('a.grades');
 		gradesDiv.addClass('btn button-sidebar-wide')
 		$('#breadcrumbs').append(gradesDiv);
+		*/
 	}
 }
 
 function add_profile_grades() {
-	var userID = get_user_from_profile_uri(); //only on profile page
+	let userID = get_user_from_profile_uri(); //only on profile page
     if (userID) {
 		/* Build New URL */
-		var newURL = window.location.origin + "/users/" +userID+ "/grades";
+		let newURL = window.location.origin + "/users/" +userID+ "/grades";
 
 		/* Add button to right side of User Page to see grades */
 		let button = $('<button/>', {
@@ -407,6 +429,7 @@ async function add_profile_file_quota_status() {
 		$(quota_pct).insertAfter('#login_information');
 	}
 }
+
 
 /*
  * MSGOBS v1.02
