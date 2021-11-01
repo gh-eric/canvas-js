@@ -314,7 +314,7 @@ function add_handler_for_student_list() {
     if (added_student_list) {
         return;
     }
-    ul_class = 'al-options ui-menu ui-widget ui-widget-content';
+    let ul_class = 'al-options ui-menu ui-widget ui-widget-content';
 
     let ul = document.getElementsByClassName(ul_class)[0];
     let li = document.createElement('li');
@@ -354,7 +354,7 @@ function add_handler_for_export() {
     if (added_handler_for_export) {
         return;
     }
-    ul_class = 'al-options ui-menu ui-widget ui-widget-content';
+    let ul_class = 'al-options ui-menu ui-widget ui-widget-content';
 
     let ul = document.getElementsByClassName(ul_class)[0];
     let li = document.createElement('li');
